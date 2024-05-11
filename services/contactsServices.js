@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 
-const contactsPath = path.resolve("contacts.json");
+const contactsPath = path.resolve("db", "contacts.json");
 
 async function readContacts() {
   const contacts = await fs.readFile(contactsPath, { encoding: "utf8" });
@@ -20,7 +20,7 @@ async function listContacts() {
 async function getContactById(contactId) {
   const contacts = await readContacts();
   const contact = contacts.find((contact) => contact.id === contactId);
-  if (contact !== contactId) {
+  if (typeof contact === "undefined") {
     return null;
   }
   return contact;
