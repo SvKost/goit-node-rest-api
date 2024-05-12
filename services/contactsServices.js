@@ -1,10 +1,10 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import * as fs from 'node:fs/promises';
+import path from 'node:path';
 
-const contactsPath = path.resolve("db", "contacts.json");
+const contactsPath = path.resolve('db', 'contacts.json');
 
 async function readContacts() {
-  const contacts = await fs.readFile(contactsPath, { encoding: "utf8" });
+  const contacts = await fs.readFile(contactsPath, { encoding: 'utf8' });
   return JSON.parse(contacts);
 }
 
@@ -19,8 +19,8 @@ async function listContacts() {
 
 async function getContactById(contactId) {
   const contacts = await readContacts();
-  const contact = contacts.find((contact) => contact.id === contactId);
-  if (typeof contact === "undefined") {
+  const contact = contacts.find(contact => contact.id === contactId);
+  if (typeof contact === 'undefined') {
     return null;
   }
   return contact;
@@ -28,9 +28,7 @@ async function getContactById(contactId) {
 
 async function removeContact(contactId) {
   const contacts = await readContacts();
-  const contactIndex = contacts.findIndex(
-    (contact) => contact.id === contactId
-  );
+  const contactIndex = contacts.findIndex(contact => contact.id === contactId);
   if (contactIndex === -1) {
     return null;
   }
@@ -51,4 +49,22 @@ async function addContact(contact) {
   return newContact;
 }
 
-export { listContacts, getContactById, removeContact, addContact };
+async function updateContactById(contact, id) {
+  const contacts = await readContacts();
+  const index = contacts.findIndex(contact => contact.id === id);
+  if (index === -1) {
+    return;
+  }
+  const updatedContact = { ...contact, id };
+  contacts[index] = updatedContact;
+  await writeContacts(contacts);
+  return updatedContact;
+}
+
+export {
+  listContacts,
+  getContactById,
+  removeContact,
+  addContact,
+  updateContactById,
+};
