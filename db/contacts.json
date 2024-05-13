@@ -48,9 +48,6 @@
     "phone": "(748) 206-2688"
   },
   {
-    "id": "b1f7503d-b447-462e-bfda-3e553ac4c90a"
-  },
-  {
     "id": "bdf26765-c48a-45f1-b525-cb417e9bb4b9",
     "name": "Jerry",
     "email": "jerry@mail.com",
@@ -163,17 +160,5 @@
     "email": "Name1@mail.com",
     "phone": "123-123-22-22",
     "id": "d74de85d-a085-4583-b691-02a6924171eb"
-  },
-  {
-    "name": "Name2",
-    "email": "Name2@mail.com",
-    "phone": "123-123-22-22",
-    "id": "3171c966-c3a2-48f4-afe2-4107c6c228e2"
-  },
-  {
-    "name": "New Cont",
-    "email": "New_C@mail.com",
-    "phone": "123-123-22-22",
-    "id": "e5f02ed2-704d-4587-9d17-ab6a3817da51"
   }
 ]

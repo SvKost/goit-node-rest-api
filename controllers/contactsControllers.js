@@ -51,7 +51,11 @@ export const createContact = async (req, res, next) => {
     });
 
     if (typeof error !== 'undefined') {
-      return res.status(400).json({ message: error.message });
+      let message = error.message.replace(
+        'fails to match the required pattern: /^\\d{3}-\\d{3}-\\d{2}-\\d{2}$/',
+        'must match the pattern: 063-123-45-67'
+      );
+      return res.status(400).json({ message });
     }
 
     const newContact = await addContact(contact);
@@ -69,9 +73,9 @@ export const updateContact = async (req, res, next) => {
     if (!existingContact) throw HttpError(404);
 
     const contact = {
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
+      name: req.body.name || existingContact.name,
+      email: req.body.email || existingContact.email,
+      phone: req.body.phone || existingContact.phone,
     };
 
     if (Object.keys(contact).length === 0) {
@@ -85,7 +89,11 @@ export const updateContact = async (req, res, next) => {
     });
 
     if (typeof error !== 'undefined') {
-      return res.status(400).json({ message: error.message });
+      let message = error.message.replace(
+        'fails to match the required pattern: /^\\d{3}-\\d{3}-\\d{2}-\\d{2}$/',
+        'must match the pattern: 063-123-45-67'
+      );
+      return res.status(400).json({ message });
     }
 
     const updatedContact = await updateContactById(contact, id);
