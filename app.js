@@ -6,8 +6,6 @@ import 'dotenv/config';
 import contactsRouter from './routes/contactsRouter.js';
 
 import './db.js';
-import mongoose from 'mongoose';
-import HttpError from './helpers/HttpError.js';
 
 const app = express();
 
