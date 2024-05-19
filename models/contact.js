@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const contactsSchema = new mongoose.Schema({
+const contactSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Set name for contact'],
@@ -16,3 +16,5 @@ const contactsSchema = new mongoose.Schema({
     default: false,
   },
 });
+
+export default mongoose.model('Contact', contactSchema);

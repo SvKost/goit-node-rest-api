@@ -1,11 +1,13 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import { configDotenv } from 'dotenv';
+import 'dotenv/config';
 
 import contactsRouter from './routes/contactsRouter.js';
 
-import 'db.js';
+import './db.js';
+import mongoose from 'mongoose';
+import HttpError from './helpers/HttpError.js';
 
 const app = express();
 

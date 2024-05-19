@@ -1,37 +1,54 @@
 import HttpError from '../helpers/HttpError.js';
 import crypto from 'node:crypto';
-import {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContactById,
-} from '../services/contactsServices.js';
+import Contact from '../models/contact.js';
 import {
   createContactSchema,
   updateContactSchema,
+  updateStatusContactSchema,
 } from '../schemas/contactsSchemas.js';
+import { error } from 'node:console';
+import mongoose from 'mongoose';
 
-export const getAllContacts = (req, res) => {
-  listContacts().then(contacts => res.status(200).json(contacts));
+export const getAllContacts = async (req, res, next) => {
+  try {
+    const contacts = await Contact.find({});
+
+    res.status(200).send(contacts);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const getOneContact = async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid ID' });
+  }
+
   try {
-    const { id } = req.params;
-    const contact = await getContactById(id);
-    if (!contact) throw HttpError(404);
-    res.status(200).json(contact);
+    const contact = await Contact.findById(id);
+
+    if (contact === null) {
+      throw HttpError(404, 'Not Found');
+    }
+
+    res.status(200).send(contact);
   } catch (error) {
     next(error);
   }
 };
 
 export const deleteContact = async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid ID' });
+  }
+
   try {
-    const { id } = req.params;
-    const removedContact = await removeContact(id);
-    if (!removedContact) throw HttpError(404);
+    const removedContact = await Contact.findByIdAndDelete(id);
+    if (removedContact === null) {
+      throw HttpError(404, 'Not Found');
+    }
     res.status(200).json(removedContact);
   } catch (error) {
     next(error);
@@ -39,26 +56,22 @@ export const deleteContact = async (req, res, next) => {
 };
 
 export const createContact = async (req, res, next) => {
+  const contact = {
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone,
+  };
+
+  const { error } = createContactSchema.validate(contact, {
+    abortEarly: false,
+  });
+
+  if (typeof error !== 'undefined') {
+    throw HttpError(400, error.details.map(err => err.message).join(', '));
+  }
+
   try {
-    const contact = {
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
-    };
-
-    const { error } = createContactSchema.validate(contact, {
-      abortEarly: false,
-    });
-
-    if (typeof error !== 'undefined') {
-      let message = error.message.replace(
-        'fails to match the required pattern: /^\\d{3}-\\d{3}-\\d{2}-\\d{2}$/',
-        'must match the pattern: 063-123-45-67'
-      );
-      return res.status(400).json({ message });
-    }
-
-    const newContact = await addContact(contact);
+    const newContact = await Contact.create(contact);
 
     res.status(201).json(newContact);
   } catch (error) {
@@ -67,10 +80,14 @@ export const createContact = async (req, res, next) => {
 };
 
 export const updateContact = async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid ID' });
+  }
+
   try {
-    const { id } = req.params;
-    const existingContact = await getContactById(id);
-    if (!existingContact) throw HttpError(404);
+    const existingContact = await Contact.findById(id);
+    if (!existingContact) throw HttpError(404, 'Not Found');
 
     const contact = {
       name: req.body.name || existingContact.name,
@@ -79,9 +96,7 @@ export const updateContact = async (req, res, next) => {
     };
 
     if (Object.keys(contact).length === 0) {
-      return res
-        .status(400)
-        .json({ message: 'Body must have at least one field' });
+      throw HttpError(400, 'Body must have at least one field');
     }
 
     const { error } = updateContactSchema.validate(contact, {
@@ -89,15 +104,42 @@ export const updateContact = async (req, res, next) => {
     });
 
     if (typeof error !== 'undefined') {
-      let message = error.message.replace(
-        'fails to match the required pattern: /^\\d{3}-\\d{3}-\\d{2}-\\d{2}$/',
-        'must match the pattern: 063-123-45-67'
-      );
-      return res.status(400).json({ message });
+      throw HttpError(400, error.details.map(err => err.message).join(', '));
     }
 
-    const updatedContact = await updateContactById(contact, id);
+    const updatedContact = await Contact.findByIdAndUpdate(id, contact, {
+      new: true,
+    });
+
     res.status(200).json(updatedContact);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateStatusContact = async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid ID' });
+  }
+  const { favorite } = req.body;
+
+  try {
+    const contact = await Contact.findById(id);
+    if (!contact) throw HttpError(404, 'Not Found');
+
+    const { error } = updateStatusContactSchema.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (typeof error !== 'undefined') {
+      throw HttpError(400, error.details.map(err => err.message).join(', '));
+    }
+
+    contact.favorite = favorite;
+    await contact.save();
+
+    res.status(200).json(contact);
   } catch (error) {
     next(error);
   }
