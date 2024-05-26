@@ -22,7 +22,7 @@ export const getAllContacts = async (req, res, next) => {
 export const getOneContact = async (req, res, next) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid ID' });
+    return res.status(400).send({ message: 'Invalid ID' });
   }
 
   try {
@@ -41,7 +41,7 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid ID' });
+    return res.status(400).send({ message: 'Invalid ID' });
   }
 
   try {
@@ -49,7 +49,7 @@ export const deleteContact = async (req, res, next) => {
     if (removedContact === null) {
       throw HttpError(404, 'Not Found');
     }
-    res.status(200).json(removedContact);
+    res.status(200).send(removedContact);
   } catch (error) {
     next(error);
   }
@@ -73,7 +73,7 @@ export const createContact = async (req, res, next) => {
   try {
     const newContact = await Contact.create(contact);
 
-    res.status(201).json(newContact);
+    res.status(201).send(newContact);
   } catch (error) {
     next(error);
   }
@@ -82,7 +82,7 @@ export const createContact = async (req, res, next) => {
 export const updateContact = async (req, res, next) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid ID' });
+    return res.status(400).send({ message: 'Invalid ID' });
   }
 
   try {
@@ -111,7 +111,7 @@ export const updateContact = async (req, res, next) => {
       new: true,
     });
 
-    res.status(200).json(updatedContact);
+    res.status(200).send(updatedContact);
   } catch (error) {
     next(error);
   }
@@ -120,7 +120,7 @@ export const updateContact = async (req, res, next) => {
 export const updateStatusContact = async (req, res, next) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid ID' });
+    return res.status(400).send({ message: 'Invalid ID' });
   }
   const { favorite } = req.body;
 
@@ -139,7 +139,7 @@ export const updateStatusContact = async (req, res, next) => {
     contact.favorite = favorite;
     await contact.save();
 
-    res.status(200).json(contact);
+    res.status(200).send(contact);
   } catch (error) {
     next(error);
   }
