@@ -78,6 +78,8 @@ export const login = async (req, res, next) => {
       { expiresIn: 60 * 60 }
     );
 
+    await User.findByIdAndUpdate(user.id, { token }, { new: true });
+
     res.status(200).send({ token, user });
   } catch (error) {
     next(error);
@@ -85,14 +87,20 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = async (req, res, next) => {
-  res.send('logout');
-  // try {
-  //   const { id } = req.body;
-  //   const existingUser = {
-  //     id,
-  //   };
-  //   const user = await User.findOne({ id });
-  // } catch (error) {
-  //   next(error);
-  // }
+  try {
+    const { id } = req.user.id;
+
+    const user = await User.findOne(id);
+    console.log('user: ', user);
+
+    if (user === null) {
+      return res.status(401).send({ message: 'Not authorized' });
+    }
+
+    await User.findByIdAndUpdate(id, { token: null }, { new: true });
+
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
 };
