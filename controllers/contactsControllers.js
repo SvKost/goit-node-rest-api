@@ -10,8 +10,9 @@ import { error } from 'node:console';
 import mongoose from 'mongoose';
 
 export const getAllContacts = async (req, res, next) => {
+  console.log(req.user);
   try {
-    const contacts = await Contact.find({});
+    const contacts = await Contact.find({ owner: req.user.id });
 
     res.status(200).send(contacts);
   } catch (error) {
@@ -26,7 +27,7 @@ export const getOneContact = async (req, res, next) => {
   }
 
   try {
-    const contact = await Contact.findById(id);
+    const contact = await Contact.findOne({ _id: id, owner: req.user.id });
 
     if (contact === null) {
       throw HttpError(404, 'Not Found');
@@ -38,32 +39,17 @@ export const getOneContact = async (req, res, next) => {
   }
 };
 
-export const deleteContact = async (req, res, next) => {
-  const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).send({ message: 'Invalid ID' });
-  }
-
-  try {
-    const removedContact = await Contact.findByIdAndDelete(id);
-    if (removedContact === null) {
-      throw HttpError(404, 'Not Found');
-    }
-    res.status(200).send(removedContact);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const createContact = async (req, res, next) => {
   const contact = {
     name: req.body.name,
     email: req.body.email,
     phone: req.body.phone,
+    owner: req.user.id,
   };
 
   const { error } = createContactSchema.validate(contact, {
     abortEarly: false,
+    stripUnknown: true,
   });
 
   if (typeof error !== 'undefined') {
@@ -79,6 +65,28 @@ export const createContact = async (req, res, next) => {
   }
 };
 
+export const deleteContact = async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).send({ message: 'Invalid ID' });
+  }
+
+  try {
+    const removedContact = await Contact.findOneAndDelete({
+      _id: id,
+      owner: req.user.id,
+    });
+
+    if (removedContact === null) {
+      throw HttpError(404, 'Not Found');
+    }
+
+    res.status(200).send(removedContact);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateContact = async (req, res, next) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -86,7 +94,10 @@ export const updateContact = async (req, res, next) => {
   }
 
   try {
-    const existingContact = await Contact.findById(id);
+    const existingContact = await Contact.findOne({
+      _id: id,
+      owner: req.user.id,
+    });
     if (!existingContact) throw HttpError(404, 'Not Found');
 
     const contact = {
@@ -101,6 +112,7 @@ export const updateContact = async (req, res, next) => {
 
     const { error } = updateContactSchema.validate(contact, {
       abortEarly: false,
+      stripUnknown: true,
     });
 
     if (typeof error !== 'undefined') {
@@ -125,11 +137,15 @@ export const updateStatusContact = async (req, res, next) => {
   const { favorite } = req.body;
 
   try {
-    const contact = await Contact.findById(id);
+    const contact = await Contact.findOne({
+      _id: id,
+      owner: req.user.id,
+    });
     if (!contact) throw HttpError(404, 'Not Found');
 
     const { error } = updateStatusContactSchema.validate(req.body, {
       abortEarly: false,
+      stripUnknown: true,
     });
 
     if (typeof error !== 'undefined') {

@@ -1,6 +1,7 @@
-import bcrypt from 'bcrypt';
-import User from '../models/users.js';
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import User from '../models/users.js';
 import { createUserSchema, loginUserSchema } from '../schemas/usersSchema.js';
 
 export const register = async (req, res, next) => {
@@ -71,8 +72,27 @@ export const login = async (req, res, next) => {
       return res.status(401).send({ message: 'Email or password is wrong' });
     }
 
-    res.status(200).send({ token: 'TOKEN', user });
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: 60 * 60 }
+    );
+
+    res.status(200).send({ token, user });
   } catch (error) {
     next(error);
   }
+};
+
+export const logout = async (req, res, next) => {
+  res.send('logout');
+  // try {
+  //   const { id } = req.body;
+  //   const existingUser = {
+  //     id,
+  //   };
+  //   const user = await User.findOne({ id });
+  // } catch (error) {
+  //   next(error);
+  // }
 };
