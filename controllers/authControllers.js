@@ -61,14 +61,12 @@ export const login = async (req, res, next) => {
     }
 
     if (user === null) {
-      console.log('Email');
       return res.status(401).send({ message: 'Email or password is wrong' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (isMatch === false) {
-      console.log('Password');
       return res.status(401).send({ message: 'Email or password is wrong' });
     }
 
@@ -88,18 +86,26 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    const { id } = req.user.id;
+    await User.findByIdAndUpdate(req.user.id, { token: null }, { new: true });
 
-    const user = await User.findOne(id);
-    console.log('user: ', user);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const current = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
 
     if (user === null) {
       return res.status(401).send({ message: 'Not authorized' });
     }
 
-    await User.findByIdAndUpdate(id, { token: null }, { new: true });
-
-    res.status(204).end();
+    res.status(200).send({
+      email: user.email,
+      subscription: user.subscription,
+    });
   } catch (error) {
     next(error);
   }
