@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import gravatar from 'gravatar';
 import User from '../models/users.js';
 import { createUserSchema, loginUserSchema } from '../schemas/usersSchema.js';
 
@@ -9,10 +10,17 @@ export const register = async (req, res, next) => {
     const { email, password, subscription } = req.body;
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const userAvatar = gravatar.url(email, {
+      s: '200',
+      r: 'pg',
+      d: '404',
+    });
+
     const user = {
-      email: email,
+      email,
       password: passwordHash,
-      subscription: subscription,
+      subscription,
+      avatarURL: userAvatar,
     };
 
     const { error } = createUserSchema.validate(user, {
