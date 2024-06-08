@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import gravatar from 'gravatar';
+import crypto from 'node:crypto';
+import mail from '../mail.js';
 import User from '../models/users.js';
 import { createUserSchema, loginUserSchema } from '../schemas/usersSchema.js';
 
@@ -9,6 +11,7 @@ export const register = async (req, res, next) => {
   try {
     const { email, password, subscription } = req.body;
     const passwordHash = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomUUID();
 
     const userAvatar = gravatar.url(email, {
       s: '200',
@@ -21,6 +24,7 @@ export const register = async (req, res, next) => {
       password: passwordHash,
       subscription,
       avatarURL: userAvatar,
+      verificationToken,
     };
 
     const { error } = createUserSchema.validate(user, {
@@ -38,6 +42,14 @@ export const register = async (req, res, next) => {
     if (isEmailExist !== null) {
       return res.status(409).send({ message: 'Email in use' });
     }
+
+    mail.sendMail({
+      to: email,
+      from: 'skost0634610557@gmail.com',
+      subject: 'Welcome to contact book!',
+      html: `To verify your email please follow this <a href="http://localhost:3000/api/users/verify/${verificationToken}">link</a>`,
+      text: `To verify your email please follow this link http://localhost:3000/api/users/verify/${verificationToken}`,
+    });
 
     const newUser = await User.create(user);
 
@@ -76,6 +88,10 @@ export const login = async (req, res, next) => {
 
     if (isMatch === false) {
       return res.status(401).send({ message: 'Email or password is wrong' });
+    }
+
+    if (user.verify === false) {
+      return res.status(401).send({ message: 'Please verify your email' });
     }
 
     const token = jwt.sign(

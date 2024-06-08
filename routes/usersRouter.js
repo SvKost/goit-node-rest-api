@@ -7,7 +7,11 @@ import {
   logout,
   current,
 } from '../controllers/authControllers.js';
-import { changeAvatar } from '../controllers/avatarsController.js';
+import {
+  changeAvatar,
+  verifyEmail,
+  resendEmail,
+} from '../controllers/userController.js';
 
 const usersRouter = express.Router();
 const jsonParser = express.json();
@@ -22,5 +26,7 @@ usersRouter.patch(
   authMiddleware,
   changeAvatar
 );
+usersRouter.get('/verify/:verificationToken', verifyEmail);
+usersRouter.post('/verify', jsonParser, resendEmail);
 
 export default usersRouter;

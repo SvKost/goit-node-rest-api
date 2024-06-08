@@ -3,7 +3,6 @@ import morgan from 'morgan';
 import cors from 'cors';
 import path from 'node:path';
 import 'dotenv/config';
-import nodemailer from 'nodemailer';
 
 import usersRouter from './routes/usersRouter.js';
 import contactsRouter from './routes/contactsRouter.js';
@@ -20,25 +19,6 @@ app.use('/avatars', express.static(path.resolve('public/avatars')));
 
 app.use('/api/users', usersRouter);
 app.use('/api/contacts', authMiddleware, contactsRouter);
-
-const transporter = nodemailer.createTransport({
-  host: 'sandbox.smtp.mailtrap.io',
-  port: 2525,
-  auth: {
-    user: process.env.MAILTRAP_USERNAME,
-    pass: process.env.MAILTRAP_PASSWORD,
-  },
-});
-
-const message = {
-  from: 'skost0634610557@gmail.com',
-  to: 'skost0634610557@gmail.com',
-  subject: 'Hello ✔',
-  text: 'Hello world!',
-  html: '<b>Hello world!</b>',
-};
-
-transporter.sendMail(message).then(console.log).catch(console.error);
 
 app.use((_, res) => {
   res.status(404).json({ message: 'Route not found' });
